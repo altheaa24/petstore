@@ -1,38 +1,60 @@
 services:
-  # Backend Service
   - type: web
-    name: petstore-backend
-    env: java
-    buildCommand: cd backend && mvn clean install -DskipTests
-    startCommand: cd backend && java -jar target/petstore-backend-0.0.1-SNAPSHOT.jar
+    name: petstore-api
+    plan: free
+    env: docker
+    dockerContext: ./backend
+    dockerfilePath: ./backend/Dockerfile
     envVars:
-      - key: DB_URL
+      - key: SPRING_PROFILES_ACTIVE
+        value: prod
+      - key: DB_HOST
         fromDatabase:
           name: petstore-db
-          property: connectionString
-      - key: DB_USER
+          property: host
+      - key: DB_PORT
+        fromDatabase:
+          name: petstore-db
+          property: port
+      - key: DB_NAME
+        fromDatabase:
+          name: petstore-db
+          property: database
+      - key: SPRING_DATASOURCE_USERNAME
         fromDatabase:
           name: petstore-db
           property: user
-      - key: DB_PASSWORD
+      - key: SPRING_DATASOURCE_PASSWORD
         fromDatabase:
           name: petstore-db
           property: password
-
-  # Frontend Service
-  - type: web
-    name: petstore-frontend
-    env: static
-    buildCommand: cd frontend && npm install && npm run build
-    staticPublishPath: frontend/dist
-    envVars:
-      - key: VITE_API_URL
+      - key: DB_SSL_MODE
+        value: require
+      - key: CORS_ALLOWED_ORIGINS
         fromService:
-          name: petstore-backend
           type: web
-          property: url
-        suffix: /api
+          name: petstore-web
+          envVarKey: RENDER_EXTERNAL_URL
+
+  - type: web
+    name: petstore-web
+    env: static
+    rootDir: frontend
+    buildCommand: npm ci && npm run build
+    staticPublishPath: dist
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
+    envVars:
+      - key: VITE_API_BASE_URL
+        fromService:
+          type: web
+          name: petstore-api
+          envVarKey: RENDER_EXTERNAL_URL
 
 databases:
   - name: petstore-db
     plan: free
+    databaseName: petstore
+    user: petstore

@@ -10,7 +10,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/pets")
-@CrossOrigin(origins = "*") // Allow frontend access
+@CrossOrigin(origins = {"http://localhost:5173", "http://localhost:5174"}, allowedHeaders = "*")
 public class PetController {
 
     @Autowired
@@ -18,8 +18,16 @@ public class PetController {
 
     @GetMapping
     public List<Pet> getAllPets(@RequestParam(required = false) String species) {
-        if (species != null && !species.isEmpty()) {
-            return petService.getPetsBySpecies(species);
+        if (species != null && !species.trim().isEmpty() && !species.equalsIgnoreCase("ALL PETS")) {
+            // Cleans inputs and turns "DOGS" or "dog" into normalized strings ("Dog" / "Bird" etc.)
+            String formattedSpecies = species.trim().toLowerCase();
+            if (formattedSpecies.endsWith("s")) {
+                formattedSpecies = formattedSpecies.substring(0, formattedSpecies.length() - 1);
+            }
+            // Capitalize first letter (e.g., "dog" -> "Dog")
+            formattedSpecies = formattedSpecies.substring(0, 1).toUpperCase() + formattedSpecies.substring(1);
+            
+            return petService.getPetsBySpecies(formattedSpecies);
         }
         return petService.getAllPets();
     }
