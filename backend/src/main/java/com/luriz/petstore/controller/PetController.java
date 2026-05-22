@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/pets")
+@RequestMapping("/pets")
 @CrossOrigin(origins = {"http://localhost:5173", "https://petstore-frontend-ztp4.onrender.com/api", "http://localhost:5174"}, allowedHeaders = "*")
 public class PetController {
 

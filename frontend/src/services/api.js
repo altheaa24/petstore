@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_BASE_URL = "https://petstore-backend-y14d.onrender.com/api";
+const API_BASE_URL = "https://petstore-backend-y14d.onrender.com";
 
 
 const api = axios.create({
