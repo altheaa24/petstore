@@ -6,9 +6,7 @@ import {
   ToggleButtonGroup, 
   ToggleButton, 
   CircularProgress,
-  Alert,
-  Container,
-  Button
+  Alert
 } from '@mui/material';
 import { useRef } from 'react';
 import PetCard from './PetCard';
@@ -22,14 +20,11 @@ const PetGallery = () => {
 
   const galleryRef = useRef(null);
 
-  const scrollToGallery = () => {
-    galleryRef.current?.scrollIntoView({ behavior: 'smooth' });
-  };
-
   const fetchPets = async () => {
     setLoading(true);
     try {
-      const response = await petService.getAllPets(speciesFilter === 'All' ? null : speciesFilter);
+      // Fetch the full pet array from your working backend
+      const response = await petService.getAllPets();
       setPets(response.data);
       setError(null);
     } catch (err) {
@@ -46,12 +41,21 @@ const PetGallery = () => {
     }
   };
 
+  // Run the fetch once when the component mounts
   useEffect(() => {
     fetchPets();
-  }, [speciesFilter]);
+  }, []);
+
+  // CRITICAL FIX: Filter the list locally in memory before mapping it to the UI grid!
+  const filteredPets = pets.filter((pet) => {
+    if (speciesFilter === 'All') return true;
+    
+    // Fallback normalization in case data is casing-mismatched (e.g., 'dog' vs 'Dog')
+    return pet.species?.toLowerCase() === speciesFilter.toLowerCase();
+  });
 
   return (
-    <Box sx={{ py: 4 }}>
+    <Box sx={{ py: 4 }} ref={galleryRef}>
       <Box sx={{ mb: 6, textAlign: 'center' }}>
         <Typography variant="h3" component="h1" gutterBottom sx={{ fontWeight: 800, color: 'primary.main' }}>
           "Meet Your New Best Friend"
@@ -83,45 +87,47 @@ const PetGallery = () => {
                   color: 'white',
                   '&:hover': {
                     backgroundColor: 'primary.dark',
+                    }
                   }
                 }
-              }
-            }}
-          >
-            <ToggleButton value="All">All Pets</ToggleButton>
-            <ToggleButton value="Dog">Dogs</ToggleButton>
-            <ToggleButton value="Cat">Cats</ToggleButton>
-            <ToggleButton value="Bird">Birds</ToggleButton>
-            <ToggleButton value="Fish">Fishes</ToggleButton>
-          </ToggleButtonGroup>
+              }}
+            >
+              <ToggleButton value="All">All Pets</ToggleButton>
+              <ToggleButton value="Dog">Dogs</ToggleButton>
+              <ToggleButton value="Cat">Cats</ToggleButton>
+              <ToggleButton value="Bird">Birds</ToggleButton>
+              <ToggleButton value="Fish">Fishes</ToggleButton>
+            </ToggleButtonGroup>
+          </Box>
         </Box>
-      </Box>
 
-      {loading ? (
-        <Box sx={{ display: 'flex', justifyContent: 'center', my: 10 }}>
-          <CircularProgress />
-        </Box>
-      ) : error ? (
-        <Alert severity="error">{error}</Alert>
-      ) : (
-        <>
-          {pets.length === 0 ? (
-            <Typography variant="h6" align="center" color="text.secondary" sx={{ py: 10 }}>
-              No pets found in this category.
-            </Typography>
-          ) : (
-            <Grid container spacing={4}>
-              {pets.map((pet) => (
-                <Grid item key={pet.id} xs={12} sm={6} md={4}>
-                  <PetCard pet={pet} />
-                </Grid>
-              ))}
-            </Grid>
-          )}
-        </>
-      )}
-    </Box>
-  );
+        {loading ? (
+          <Box sx={{ display: 'flex', justifyContent: 'center', my: 10 }}>
+            <CircularProgress />
+          </Box>
+        ) : error ? (
+          <Alert severity="error">{error}</Alert>
+        ) : (
+          <>
+            {/* CHANGED: Check filteredPets instead of raw pets state */}
+            {filteredPets.length === 0 ? (
+              <Typography variant="h6" align="center" color="text.secondary" sx={{ py: 10 }}>
+                No pets found in this category.
+              </Typography>
+            ) : (
+              <Grid container spacing={4}>
+                {/* CHANGED: Loop through the filtered array */}
+                {filteredPets.map((pet) => (
+                  <Grid item key={pet.id} xs={12} sm={6} md={4}>
+                    <PetCard pet={pet} />
+                  </Grid>
+                ))}
+              </Grid>
+            )}
+          </>
+        )}
+      </Box>
+    );
 };
 
 export default PetGallery;
