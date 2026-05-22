@@ -8,7 +8,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/pets")
+@RequestMapping("/api/pets")
 @CrossOrigin(origins = "https://petstore-frontend-ztp4.onrender.com", allowCredentials = "true")
 public class PetController {
 
