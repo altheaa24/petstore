@@ -1,30 +1,33 @@
 package com.luriz.petstore;
 
-import org.springframework.boot.SpringBootConfiguration;
-import org.springframework.boot.SpringApplication;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
-import org.springframework.web.servlet.config.annotation.CorsRegistry;
-import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+import org.springframework.web.filter.CorsFilter;
 
-@SpringBootApplication
-public class PetstoreApplication {
+import java.util.Arrays;
+import java.util.Collections;
 
-    public static void main(String[] args) {
-        SpringApplication.run(PetstoreApplication.class, args);
-    }
+@Configuration
+public class CorsConfig {
 
     @Bean
-    public WebMvcConfigurer corsConfigurer() {
-        return new WebMvcConfigurer() {
-            @Override
-            public void addCorsMappings(CorsRegistry registry) {
-                registry.addMapping("/**")
-                        .allowedOrigins("https://petstore-frontend-ztp4.onrender.com") // Your live frontend URL!
-                        .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
-                        .allowedHeaders("*")
-                        .allowCredentials(true);
-            }
-        };
+    public CorsFilter corsFilter() {
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        CorsConfiguration config = new CorsConfiguration();
+        
+        // This explicitly authorizes your exact Render frontend link
+        config.setAllowedOrigins(Collections.singletonList("https://petstore-frontend-ztp4.onrender.com"));
+        
+        // This ensures pre-flight OPTIONS requests pass through flawlessly
+        config.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
+        config.setAllowedHeaders(Arrays.asList("Origin", "Content-Type", "Accept", "Authorization", "X-Requested-With"));
+        config.setExposedHeaders(Arrays.asList("Authorization", "Link", "X-Total-Count"));
+        config.setAllowCredentials(true);
+        config.setMaxAge(3600L); // Caches the handshake for 1 hour to prevent constant checking
+        
+        source.registerCorsConfiguration("/**", config);
+        return new CorsFilter(source);
     }
 }
