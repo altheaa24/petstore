@@ -9,10 +9,10 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/pets")
-@CrossOrigin(origins = {"http://localhost:5173", "https://petstore-frontend-ztp4.onrender.com/api", "http://localhost:5174"}, allowedHeaders = "*")
+@RequestMapping("/pets") // No /api here!
+@CrossOrigin(origins = "https://petstore-frontend-ztp4.onrender.com", allowCredentials = "true")
 public class PetController {
-
+}
     @Autowired
     private PetService petService;
 
